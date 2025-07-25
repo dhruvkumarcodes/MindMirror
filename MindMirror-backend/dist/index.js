@@ -94,25 +94,43 @@ app.delete('/api/v1/brain/content', middleware_1.userMiddleware, (req, res) => _
 app.post('/api/v1/brain/share', middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const share = req.body.share;
     if (share) {
-        yield db_1.LinkModel.create({
+        const existingLink = yield db_1.LinkModel.findOne({
             //@ts-ignore
             userId: req.userId,
-            hash: (0, extra_1.random)(10)
         });
+        if (existingLink) {
+            return res.status(400).json({ error: "Share link already exists" });
+            return;
+        }
+        try {
+            const hash = (0, extra_1.random)(10);
+            yield db_1.LinkModel.create({
+                //@ts-ignore
+                userId: req.userId,
+                hash: hash
+            });
+            res.json({
+                message: hash,
+            });
+        }
+        catch (error) {
+            res.status(500).json({ error: "Error creating share link" });
+            return;
+        }
     }
     else {
         yield db_1.LinkModel.deleteOne({
             //@ts-ignore
             userId: req.userId,
         });
+        res.json({
+            message: "Share link deleted",
+        });
     }
-    res.json({
-        message: share ? "Share link created" : "Share link deleted"
-    });
 }));
 app.get('/api/v1/brain/:shareLink', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const hash = req.params.shareLink;
-    const link = db_1.LinkModel.findOne({ hash });
+    const link = yield db_1.LinkModel.findOne({ hash });
     if (!link) {
         return res.status(404).json({ error: "Share link not found" });
         return;
@@ -123,7 +141,7 @@ app.get('/api/v1/brain/:shareLink', (req, res) => __awaiter(void 0, void 0, void
     });
     const user = yield db_1.UserModel.findOne({
         //@ts-ignore
-        userid: link.userId
+        _id: link.userId
     });
     if (!content || !user) {
         return res.status(404).json({ error: "Content or user not found" });
@@ -131,7 +149,7 @@ app.get('/api/v1/brain/:shareLink', (req, res) => __awaiter(void 0, void 0, void
     }
     res.json({
         user: user.username,
-        contemt: content
+        content: content
     });
 }));
 app.listen(PORT, () => {

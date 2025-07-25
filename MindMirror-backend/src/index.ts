@@ -92,25 +92,45 @@ app.delete('/api/v1/brain/content', userMiddleware, async (req, res) => {
 app.post('/api/v1/brain/share', userMiddleware, async (req, res) => {
     const share = req.body.share;
     if (share) {
-        await LinkModel.create({
+        const existingLink = await LinkModel.findOne({
             //@ts-ignore
             userId: req.userId,
-            hash: random(10)
         });
+        if (existingLink) {
+            return res.status(400).json({ error: "Share link already exists" });
+            return;
+        }
+
+        try {
+
+            const hash = random(10);
+            await LinkModel.create({
+                //@ts-ignore
+                userId: req.userId,
+                hash: hash
+            });
+            res.json({
+                message: hash,
+            });
+        } catch (error) {
+            res.status(500).json({ error: "Error creating share link" });
+            return;
+        }
     } else {
         await LinkModel.deleteOne({
             //@ts-ignore
             userId: req.userId,
         })
+        res.json({
+            message: "Share link deleted",
+        });
     }
-    res.json({
-        message: share ? "Share link created" : "Share link deleted"
-    });
+
 });
 
 app.get('/api/v1/brain/:shareLink', async (req, res) => {
     const hash = req.params.shareLink;
-    const link = LinkModel.findOne({ hash });
+    const link = await LinkModel.findOne({ hash });
     if (!link) {
         return res.status(404).json({ error: "Share link not found" });
         return;
@@ -121,7 +141,7 @@ app.get('/api/v1/brain/:shareLink', async (req, res) => {
     })
     const user = await UserModel.findOne({
         //@ts-ignore
-        userid: link.userId
+        _id: link.userId
     });
     if (!content || !user) {
         return res.status(404).json({ error: "Content or user not found" });
@@ -129,7 +149,7 @@ app.get('/api/v1/brain/:shareLink', async (req, res) => {
     }
     res.json({
         user: user.username,
-        contemt: content
+        content: content
     });
 });
 
