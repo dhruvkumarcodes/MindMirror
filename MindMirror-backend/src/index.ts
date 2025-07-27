@@ -6,10 +6,15 @@ import { z } from 'zod';
 import { JWT_PASSWORD } from './config';
 import { userMiddleware } from './middleware';
 import { random } from './extra';
+import cors from 'cors';
+
+
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+app.use(cors());
 app.use(express.json());
+
 
 const userSchema = z.object({
     username: z.string().min(1, "Username is required"),
@@ -57,10 +62,12 @@ app.post('/api/v1/signin', async (req, res) => {
 });
 
 app.post('/api/v1/content', userMiddleware, (req, res) => {
-    const { title, link } = req.body;
+    const { title, link, type, content } = req.body;
     ContentModel.create({
         title,
         link,
+        type,
+        content,
 
         //@ts-ignore
         userId: req.userId,
@@ -79,17 +86,30 @@ app.get('/api/v1/content', userMiddleware, async (req, res) => {
     res.json({ content });
 });
 
-app.delete('/api/v1/brain/content', userMiddleware, async (req, res) => {
-    const contentId = req.body.contentId;
-    await ContentModel.deleteMany({
-        contentId,
-        //@ts-ignore
-        userId: req.userId
+app.delete('/api/v1/brain/:id', userMiddleware, async (req, res) => {
+    const id = req.params.id;
+    console.log("Delete request for ID:", id);
+    //@ts-ignore
+    console.log("Authenticated user ID:", req.userId);
+    try {
+        const result = await ContentModel.findOneAndDelete({
+            _id: id,
+            //@ts-ignore
+            userId: req.userId
+        }
+        );
+        if (!result) {
+            return res.status(404).json({ error: "Content not found" });
+        }
+        res.json({ message: "Content deleted" });
+    } catch (error) {
+        console.error("Error deleting content:", error);
+        res.status(500).json({ error: "Error deleting content" });
     }
-    );
 });
 
 app.post('/api/v1/brain/share', userMiddleware, async (req, res) => {
+
     const share = req.body.share;
     if (share) {
         const existingLink = await LinkModel.findOne({
@@ -97,8 +117,8 @@ app.post('/api/v1/brain/share', userMiddleware, async (req, res) => {
             userId: req.userId,
         });
         if (existingLink) {
-            return res.status(400).json({ error: "Share link already exists" });
-            return;
+            return res.json({ hash: existingLink.hash });
+
         }
 
         try {
@@ -110,7 +130,7 @@ app.post('/api/v1/brain/share', userMiddleware, async (req, res) => {
                 hash: hash
             });
             res.json({
-                message: hash,
+                hash: hash,
             });
         } catch (error) {
             res.status(500).json({ error: "Error creating share link" });
@@ -152,6 +172,8 @@ app.get('/api/v1/brain/:shareLink', async (req, res) => {
         content: content
     });
 });
+
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

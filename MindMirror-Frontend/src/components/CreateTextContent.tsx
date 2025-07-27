@@ -7,14 +7,14 @@ import { BACKEND_URL } from "../config";
 
 
 
-export function CreateContent({ open, onClose }) {
+export function CreateTextContent({ open, onClose }) {
     const [title, setTitle] = useState("");
-    const [link, setLink] = useState("");
-    const [type, setType] = useState("video");
+    const [content, setText] = useState("");
+    const [type, setType] = useState("text");
     async function addContent() {
         await axios.post(`${BACKEND_URL}/api/v1/content`, {
             title,
-            link,
+            content: content,
             type
         }, {
             headers: {
@@ -40,14 +40,14 @@ export function CreateContent({ open, onClose }) {
                         </div>
                         <div>
                             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder={"Title"} />
-                            <Input value={link} onChange={(e) => setLink(e.target.value)} placeholder={"Link"} />
+                            <Input value={content} onChange={(e) => setText(e.target.value)} placeholder={"Content"} />
                         </div>
                         <div>
 
                             <div className="flex justify-between items-center m-2">
                                 <h1 className="font-semibold">Type:</h1>
-                                <Button size="sm" text="video" variant={type === "video" ? "primary" : "secondary"} onClick={() => setType("video")} />
-                                <Button size="sm" text="Tweet" variant={type === "tweet" ? "primary" : "secondary"} onClick={() => setType("tweet")} />
+                                <Button size="sm" text="Text" variant={type === "text" ? "primary" : "secondary"} onClick={() => setType("text")} />
+                                <Button size="sm" text="TextFile" variant={type === "textfile" ? "primary" : "secondary"} onClick={() => setType("textfile")} />
 
                             </div>
                         </div>

@@ -20,8 +20,10 @@ const zod_1 = require("zod");
 const config_1 = require("./config");
 const middleware_1 = require("./middleware");
 const extra_1 = require("./extra");
+const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
+app.use((0, cors_1.default)());
 app.use(express_1.default.json());
 const userSchema = zod_1.z.object({
     username: zod_1.z.string().min(1, "Username is required"),
@@ -65,10 +67,12 @@ app.post('/api/v1/signin', (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 }));
 app.post('/api/v1/content', middleware_1.userMiddleware, (req, res) => {
-    const { title, link } = req.body;
+    const { title, link, type, content } = req.body;
     db_1.ContentModel.create({
         title,
         link,
+        type,
+        content,
         //@ts-ignore
         userId: req.userId,
         tags: [],
@@ -83,13 +87,26 @@ app.get('/api/v1/content', middleware_1.userMiddleware, (req, res) => __awaiter(
     }).populate("userId", "username");
     res.json({ content });
 }));
-app.delete('/api/v1/brain/content', middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const contentId = req.body.contentId;
-    yield db_1.ContentModel.deleteMany({
-        contentId,
-        //@ts-ignore
-        userId: req.userId
-    });
+app.delete('/api/v1/brain/:id', middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.params.id;
+    console.log("Delete request for ID:", id);
+    //@ts-ignore
+    console.log("Authenticated user ID:", req.userId);
+    try {
+        const result = yield db_1.ContentModel.findOneAndDelete({
+            _id: id,
+            //@ts-ignore
+            userId: req.userId
+        });
+        if (!result) {
+            return res.status(404).json({ error: "Content not found" });
+        }
+        res.json({ message: "Content deleted" });
+    }
+    catch (error) {
+        console.error("Error deleting content:", error);
+        res.status(500).json({ error: "Error deleting content" });
+    }
 }));
 app.post('/api/v1/brain/share', middleware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const share = req.body.share;
@@ -99,8 +116,7 @@ app.post('/api/v1/brain/share', middleware_1.userMiddleware, (req, res) => __awa
             userId: req.userId,
         });
         if (existingLink) {
-            return res.status(400).json({ error: "Share link already exists" });
-            return;
+            return res.json({ hash: existingLink.hash });
         }
         try {
             const hash = (0, extra_1.random)(10);
@@ -110,7 +126,7 @@ app.post('/api/v1/brain/share', middleware_1.userMiddleware, (req, res) => __awa
                 hash: hash
             });
             res.json({
-                message: hash,
+                hash: hash,
             });
         }
         catch (error) {

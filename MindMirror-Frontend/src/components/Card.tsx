@@ -1,37 +1,71 @@
+import { useEffect } from "react";
+import { DeleteIcon } from "../icons/DeleteIcon";
+import { DocumentIcon } from "../icons/DocumentIcon";
+import { LinkIcon } from "../icons/LinkIcon";
 import { ShareIcon } from "../icons/ShareIcon";
+import { TwitterIcon } from "../icons/TwitterIcon";
+import { YoutubeIcon } from "../icons/YoutubeIcon";
 import { getYouTubeEmbedUrl } from "./YoutubeUrl";
 
+
 interface CardProps {
+    _id: string;
     title: string;
     link: string;
-    type?: "video" | "tweet" | "article";
+    content: string;
+    createdAt: string;
+    type?: "video" | "tweet" | "text" | "textfile";
+    onDelete: (id: string) => void;
 }
-export function Card({ title, link, type }: CardProps) {
+export function Card({ _id, title, link, content, type, createdAt, onDelete }: CardProps) {
     const videoEmbedUrl = getYouTubeEmbedUrl(link);
+    useEffect(() => {
+        if (type === "tweet") {
+            // Ensure Twitter widgets script is loaded
+            const scriptId = "twitter-wjs";
+            if (!document.getElementById(scriptId)) {
+                const script = document.createElement("script");
+                script.id = scriptId;
+                script.src = "https://platform.twitter.com/widgets.js";
+                script.async = true;
+                document.body.appendChild(script);
+            } else {
+                //@ts-ignore
+                window?.twttr?.widgets?.load();
+            }
+        }
+    }, [type, link]);
+    console.log("Card props:", { title, link, type, videoEmbedUrl });
     return (
-        <div>
-            <div className=" bg-white  rounded-md border-gray-200  p-8 border max-w-72">
+        <div >
+            <div className=" bg-white min-w-92 h-[400px] rounded-md border-gray-200  p-8 border flex flex-col m-1">
                 <div className="flex justify-between ">
                     <div className="flex items-center text-md font-semibold">
                         <div className="text-gray-500 items-center pr-4">
-                            <ShareIcon size="md" />
+                            {type === "video" && <YoutubeIcon />}
+                            {type === "tweet" && <TwitterIcon />}
+                            {type === "text" && <DocumentIcon />}
                         </div>
-                        {title}
+                        <div className="font-semibold text-lg">
+
+                            {title}
+                        </div>
+
                     </div>
 
                     <div className="flex">
                         <div className="pr-2 text-gray-500">
-                            <a href={link} target="-blank">
-                                <ShareIcon size="md" />
+                            <a href={link} target="_blank">
+                                {type != "text" && <LinkIcon />}
                             </a>
                         </div>
 
-                        <div className="text-gray-500">
-                            <ShareIcon size="md" />
+                        <div className="text-gray-500" onClick={() => onDelete(_id)}>
+                            <DeleteIcon />
                         </div>
                     </div>
                 </div>
-                <div className="pt-4">
+                <div className="pt-4 overflow-y-auto flex-1">
 
                     {type === "video" && videoEmbedUrl && (
                         <iframe
@@ -48,7 +82,13 @@ export function Card({ title, link, type }: CardProps) {
 
                     {type === "tweet" && <blockquote className="twitter-tweet"><a href={link.replace("x.com", "twitter.com")}></a></blockquote>}
 
+                    {type === "text" && (
+                        <div className="font-bold">
+                            {content}
+                        </div>
+                    )}
                 </div>
+                <div className="text-xs text-gray-400">{new Date(createdAt).toLocaleString()}</div>
             </div>
 
         </div>
