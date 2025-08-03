@@ -4,7 +4,7 @@ import { JWT_PASSWORD } from './config';
 
 export const userMiddleware = (req: Request, res: Response, next: Function) => {
     const header = req.headers['authorization'];
-    const decoded = jwt.verify(header as string, JWT_PASSWORD);
+    const decoded = jwt.verify(header as string, JWT_PASSWORD as string);
     if (decoded) {
         //@ts-ignore
         req.userId = decoded.id;

@@ -24,7 +24,10 @@ const cors_1 = __importDefault(require("cors"));
 const geminichat_1 = __importDefault(require("./geminichat"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
-app.use((0, cors_1.default)());
+app.use((0, cors_1.default)({
+    origin: "http://localhost:5173",
+    credentials: true
+}));
 app.use(express_1.default.json());
 const userSchema = zod_1.z.object({
     username: zod_1.z.string().min(1, "Username is required"),
