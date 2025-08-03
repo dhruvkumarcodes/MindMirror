@@ -28,7 +28,5 @@
   },
   "include": [
     "src",
-    "../MindMirror-backend/src/api",
-    "../MindMirror-backend/src/geminichat.ts"
   ]
 }
