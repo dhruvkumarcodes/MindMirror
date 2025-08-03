@@ -106,6 +106,7 @@ export function DashBoard() {
             />
           )}
         </div>
+        {/* VA */}
         <div className="fixed bottom-5 right-5  ">
           <Boom />
         </div>
