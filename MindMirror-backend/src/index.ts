@@ -13,7 +13,10 @@ import geminiResponse from "./geminichat"
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true
+}));
 app.use(express.json());
 
 
@@ -55,7 +58,7 @@ app.post('/api/v1/signin', async (req, res) => {
     }
 
     if (existingUser) {
-        const token = jwt.sign({ id: existingUser._id }, JWT_PASSWORD);
+        const token = jwt.sign({ id: existingUser._id }, JWT_PASSWORD as string);
         res.json({ token });
     } else {
         res.status(401).json({ error: "Invalid username or password" });
