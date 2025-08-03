@@ -10,6 +10,7 @@ import { Sidebar } from '../components/Sidebar'
 import axios from 'axios'
 import { BACKEND_URL } from '../config'
 import { CreateTextContent } from '../components/CreateTextContent'
+import { Boom } from '../components/Boom'
 
 type ContentType = {
   _id: string;
@@ -82,7 +83,7 @@ export function DashBoard() {
               // Dynamically get current domain (works on local + production)
               const shareUrl = `${window.location.origin}/share/${shareHash}`;
 
-              // Optional: Show and copy to clipboard
+              // Show and copy to clipboard
               await navigator.clipboard.writeText(shareUrl);
               alert(`Shareable link copied:\n${shareUrl}`);
             } catch (err) {
@@ -95,7 +96,7 @@ export function DashBoard() {
           {content.map(({ _id, type, link, title, createdAt, content }) =>
             <Card
               key={_id}
-              _id={_id} // Assuming link is unique, otherwise use a better unique identifier
+              _id={_id}
               type={type}
               content={content}
               createdAt={createdAt}
@@ -104,6 +105,9 @@ export function DashBoard() {
               onDelete={handleDelete}
             />
           )}
+        </div>
+        <div className="fixed bottom-5 right-5  ">
+          <Boom />
         </div>
       </div>
     </div>

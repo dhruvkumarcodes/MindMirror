@@ -35,7 +35,7 @@ export function SharePage() {
             <div className="flex flex-wrap gap-4">
                 {content.map(({ type, title, link, content, createdAt }, index) => (
                     <Card
-                        _id={index.toString()} // Using index as a temporary ID, ideally should be unique
+                        _id={index.toString()}
                         key={index}
                         type={type}
                         title={title}

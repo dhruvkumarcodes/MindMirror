@@ -7,6 +7,7 @@ import { JWT_PASSWORD } from './config';
 import { userMiddleware } from './middleware';
 import { random } from './extra';
 import cors from 'cors';
+import geminiResponse from "./geminichat"
 
 
 
@@ -172,6 +173,22 @@ app.get('/api/v1/brain/:shareLink', async (req, res) => {
         content: content
     });
 });
+
+app.post('/api/v1/boom', async (req, res) => {
+    const { prompt } = req.body;
+    if (!prompt) {
+        return res.status(400).json({ error: "Prompt is required" });
+    }
+
+    try {
+        const boomReply = await geminiResponse(prompt);
+        res.json({ reply: boomReply });
+    } catch (error) {
+        console.error("Error generating Gemini response:", error);
+        res.status(500).json({ error: "Failed to get response from BOOM" });
+    }
+});
+
 
 
 

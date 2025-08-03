@@ -21,6 +21,7 @@ const config_1 = require("./config");
 const middleware_1 = require("./middleware");
 const extra_1 = require("./extra");
 const cors_1 = __importDefault(require("cors"));
+const geminichat_1 = __importDefault(require("./geminichat"));
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 3000;
 app.use((0, cors_1.default)());
@@ -167,6 +168,20 @@ app.get('/api/v1/brain/:shareLink', (req, res) => __awaiter(void 0, void 0, void
         user: user.username,
         content: content
     });
+}));
+app.post('/api/v1/boom', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { prompt } = req.body;
+    if (!prompt) {
+        return res.status(400).json({ error: "Prompt is required" });
+    }
+    try {
+        const boomReply = yield (0, geminichat_1.default)(prompt);
+        res.json({ reply: boomReply });
+    }
+    catch (error) {
+        console.error("Error generating Gemini response:", error);
+        res.status(500).json({ error: "Failed to get response from BOOM" });
+    }
 }));
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

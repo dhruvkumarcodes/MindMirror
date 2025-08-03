@@ -35,7 +35,7 @@ export function Card({ _id, title, link, content, type, createdAt, onDelete }: C
             }
         }
     }, [type, link]);
-    console.log("Card props:", { title, link, type, videoEmbedUrl });
+
     return (
         <div >
             <div className=" bg-white min-w-92 h-[400px] rounded-md border-gray-200  p-8 border flex flex-col m-1">
